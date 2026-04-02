@@ -1,7 +1,9 @@
 do $$
 begin
   if not exists (
-    select 1 from pg_type where typname = 'tenant_member_role'
+    select 1
+    from pg_type
+    where typname = 'tenant_member_role'
   ) then
     create type public.tenant_member_role as enum (
       'student',
@@ -32,7 +34,7 @@ create table if not exists public.tenant_memberships (
   invited_by uuid references auth.users (id) on delete set null,
   created_at timestamptz not null default timezone('utc', now()),
   updated_at timestamptz not null default timezone('utc', now()),
-  constraint tenant_memberships_unique unique (tenant_id, user_id)
+  constraint tenant_memberships_tenant_id_user_id_key unique (tenant_id, user_id)
 );
 
 create table if not exists public.tenant_invites (
@@ -51,9 +53,9 @@ create table if not exists public.tenant_invites (
 
 insert into public.tenants (name, slug, description)
 select
-  'IEEE CS SRM Vadapalani',
+  'IEEE CS SRM IST Vadapalani',
   'ieee-cs-srm-vadapalani',
-  'Default tenant for the IEEE CS SRM IST Vadapalani event platform.'
+  'Default workspace for the IEEE Computer Society SRM IST Vadapalani event platform.'
 where not exists (
   select 1
   from public.tenants
@@ -109,7 +111,9 @@ alter table public.form_submissions
 do $$
 begin
   if not exists (
-    select 1 from pg_constraint where conname = 'events_tenant_id_fkey'
+    select 1
+    from pg_constraint
+    where conname = 'events_tenant_id_fkey'
   ) then
     alter table public.events
       add constraint events_tenant_id_fkey
@@ -117,7 +121,9 @@ begin
   end if;
 
   if not exists (
-    select 1 from pg_constraint where conname = 'event_forms_tenant_id_fkey'
+    select 1
+    from pg_constraint
+    where conname = 'event_forms_tenant_id_fkey'
   ) then
     alter table public.event_forms
       add constraint event_forms_tenant_id_fkey
@@ -125,7 +131,9 @@ begin
   end if;
 
   if not exists (
-    select 1 from pg_constraint where conname = 'form_submissions_tenant_id_fkey'
+    select 1
+    from pg_constraint
+    where conname = 'form_submissions_tenant_id_fkey'
   ) then
     alter table public.form_submissions
       add constraint form_submissions_tenant_id_fkey
@@ -135,25 +143,23 @@ end
 $$;
 
 create index if not exists tenant_memberships_user_id_idx
-  on public.tenant_memberships (user_id);
-
-create index if not exists tenant_memberships_tenant_id_idx
-  on public.tenant_memberships (tenant_id);
-
-create index if not exists tenant_invites_tenant_id_idx
-  on public.tenant_invites (tenant_id);
+  on public.tenant_memberships (user_id, tenant_id);
 
 create index if not exists tenant_invites_email_idx
   on public.tenant_invites (lower(invited_email));
 
+create unique index if not exists tenant_invites_tenant_email_pending_unique_idx
+  on public.tenant_invites (tenant_id, lower(invited_email))
+  where accepted_at is null;
+
 create index if not exists events_tenant_id_idx
-  on public.events (tenant_id);
+  on public.events (tenant_id, event_date);
 
 create index if not exists event_forms_tenant_id_idx
-  on public.event_forms (tenant_id);
+  on public.event_forms (tenant_id, created_at desc);
 
 create index if not exists form_submissions_tenant_id_idx
-  on public.form_submissions (tenant_id);
+  on public.form_submissions (tenant_id, submitted_at desc);
 
 drop trigger if exists tenants_touch_updated_at on public.tenants;
 create trigger tenants_touch_updated_at
@@ -304,6 +310,32 @@ begin
 end;
 $$;
 
+create or replace function public.handle_new_user_tenant_memberships()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  requested_role public.app_role;
+begin
+  requested_role := case
+    when lower(coalesce(new.raw_user_meta_data ->> 'role', 'student')) = 'faculty' then 'faculty'::public.app_role
+    when lower(coalesce(new.raw_user_meta_data ->> 'role', 'student')) = 'student_coordinator' then 'student_coordinator'::public.app_role
+    else 'student'::public.app_role
+  end;
+
+  perform public.claim_pending_invites_for_user(new.id, new.email, requested_role);
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_tenant_memberships on auth.users;
+create trigger on_auth_user_created_tenant_memberships
+after insert on auth.users
+for each row
+execute function public.handle_new_user_tenant_memberships();
+
 alter table public.tenants enable row level security;
 alter table public.tenant_memberships enable row level security;
 alter table public.tenant_invites enable row level security;
@@ -378,4 +410,41 @@ create policy "tenant managers manage invites"
   with check (
     public.is_admin_user()
     or public.can_manage_tenant(tenant_id)
+  );
+
+drop policy if exists "public can submit published anonymous forms" on public.form_submissions;
+create policy "public can submit published anonymous forms"
+  on public.form_submissions
+  for insert
+  to anon
+  with check (
+    auth_user_id is null
+    and exists (
+      select 1
+      from public.event_forms
+      where event_forms.id = form_submissions.form_id
+        and event_forms.tenant_id = form_submissions.tenant_id
+        and event_forms.status = 'published'
+        and event_forms.requires_authentication = false
+    )
+  );
+
+drop policy if exists "authenticated users can submit published forms" on public.form_submissions;
+create policy "authenticated users can submit published forms"
+  on public.form_submissions
+  for insert
+  to authenticated
+  with check (
+    (auth_user_id is null or auth_user_id = auth.uid())
+    and exists (
+      select 1
+      from public.event_forms
+      where event_forms.id = form_submissions.form_id
+        and event_forms.tenant_id = form_submissions.tenant_id
+        and event_forms.status = 'published'
+        and (
+          event_forms.requires_authentication = false
+          or auth.uid() is not null
+        )
+    )
   );

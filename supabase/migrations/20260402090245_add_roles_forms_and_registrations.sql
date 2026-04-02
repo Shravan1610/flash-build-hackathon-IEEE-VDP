@@ -55,7 +55,15 @@ create table if not exists public.event_forms (
   updated_at timestamptz not null default timezone('utc', now()),
   published_at timestamptz,
   constraint event_forms_title_not_blank check (btrim(title) <> ''),
-  constraint event_forms_slug_not_blank check (btrim(slug) <> '')
+  constraint event_forms_slug_not_blank check (btrim(slug) <> ''),
+  constraint event_forms_status_published_requires_timestamp check (
+    status <> 'published'
+    or published_at is not null
+  ),
+  constraint event_forms_non_published_has_no_timestamp check (
+    status = 'published'
+    or published_at is null
+  )
 );
 
 create table if not exists public.form_fields (
@@ -100,17 +108,27 @@ create unique index if not exists event_forms_slug_unique_idx
 create index if not exists event_forms_event_id_idx
   on public.event_forms (event_id);
 
-create index if not exists form_fields_form_sort_idx
+create index if not exists event_forms_status_idx
+  on public.event_forms (status, published_at desc nulls last);
+
+create unique index if not exists form_fields_form_id_field_key_unique_idx
+  on public.form_fields (form_id, lower(field_key));
+
+create index if not exists form_fields_form_order_idx
   on public.form_fields (form_id, sort_order asc, created_at asc);
 
-create index if not exists form_submissions_form_submitted_idx
+create index if not exists form_submissions_form_id_idx
   on public.form_submissions (form_id, submitted_at desc);
 
 create index if not exists form_submissions_event_id_idx
-  on public.form_submissions (event_id);
+  on public.form_submissions (event_id, submitted_at desc);
 
 create index if not exists form_submissions_auth_user_id_idx
-  on public.form_submissions (auth_user_id);
+  on public.form_submissions (auth_user_id, submitted_at desc);
+
+create index if not exists form_submissions_submitter_email_idx
+  on public.form_submissions (lower(submitter_email))
+  where submitter_email is not null;
 
 create or replace function public.is_admin_user()
 returns boolean
@@ -131,6 +149,59 @@ as $$
     where user_id = auth.uid()
   );
 $$;
+
+create or replace function public.handle_new_user_profile()
+returns trigger
+language plpgsql
+security definer
+set search_path = public
+as $$
+declare
+  requested_role text;
+  resolved_role public.app_role;
+begin
+  requested_role := lower(coalesce(new.raw_user_meta_data ->> 'role', 'student'));
+  resolved_role := case
+    when requested_role = 'faculty' then 'faculty'::public.app_role
+    else 'student'::public.app_role
+  end;
+
+  insert into public.user_profiles (user_id, full_name, role)
+  values (
+    new.id,
+    nullif(coalesce(new.raw_user_meta_data ->> 'full_name', new.email), ''),
+    resolved_role
+  )
+  on conflict (user_id) do update
+    set full_name = coalesce(excluded.full_name, public.user_profiles.full_name);
+
+  return new;
+end;
+$$;
+
+drop trigger if exists on_auth_user_created_profile on auth.users;
+create trigger on_auth_user_created_profile
+after insert on auth.users
+for each row
+execute function public.handle_new_user_profile();
+
+drop trigger if exists user_profiles_touch_updated_at on public.user_profiles;
+create trigger user_profiles_touch_updated_at
+before update on public.user_profiles
+for each row
+execute function public.touch_updated_at();
+
+drop trigger if exists event_forms_touch_updated_at on public.event_forms;
+create trigger event_forms_touch_updated_at
+before update on public.event_forms
+for each row
+execute function public.touch_updated_at();
+
+drop trigger if exists form_fields_touch_updated_at on public.form_fields;
+create trigger form_fields_touch_updated_at
+before update on public.form_fields
+for each row
+execute function public.touch_updated_at();
 
 alter table public.user_profiles enable row level security;
 alter table public.event_forms enable row level security;
