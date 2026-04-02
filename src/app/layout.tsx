@@ -1,0 +1,46 @@
+import * as React from "react";
+import type { Metadata } from "next";
+import { IBM_Plex_Mono, Space_Grotesk, Public_Sans } from "next/font/google";
+
+import { SiteShell } from "@/components/layout/site-shell";
+import { cn } from "@/lib/utils/cn";
+
+import "./globals.css";
+
+const publicSans = Public_Sans({subsets:['latin'],variable:'--font-sans'});
+
+const spaceGrotesk = Space_Grotesk({
+  subsets: ["latin"],
+  variable: "--font-heading",
+});
+
+const ibmPlexMono = IBM_Plex_Mono({
+  subsets: ["latin"],
+  variable: "--font-mono",
+  weight: ["400", "500"],
+});
+
+export const metadata: Metadata = {
+  title: "IEEE CS VDP Event Platform",
+  description: "Poster-to-portal event publishing for IEEE CS SRM IST Vadapalani.",
+};
+
+export default function RootLayout({
+  children,
+}: Readonly<{
+  children: React.ReactNode;
+}>) {
+  return (
+    <html lang="en" className={cn("font-sans", publicSans.variable)}>
+      <body
+        className={cn(
+          spaceGrotesk.variable,
+          ibmPlexMono.variable,
+          "min-h-screen bg-background font-[family-name:var(--font-heading)] text-foreground antialiased",
+        )}
+      >
+        <SiteShell>{children}</SiteShell>
+      </body>
+    </html>
+  );
+}
