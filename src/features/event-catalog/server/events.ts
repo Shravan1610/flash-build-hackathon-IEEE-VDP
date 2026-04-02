@@ -4,9 +4,10 @@ import type { EventRecord } from "@/features/event-catalog/types/event";
 import type { EventSearchFilters } from "@/features/search-filter/types/search";
 import type { Database } from "@/types/supabase";
 import { createSupabaseServerClient } from "@/lib/supabase/server";
+import { requireAdminUser } from "@/features/auth/server/auth";
 
 import { formatEventTimeRange, summarizeEventText } from "../lib/format-event";
-import { getEventBySlug, getPublishedEvents } from "../lib/mock-events";
+import { getEventBySlug, getPublishedEvents, getReviewQueueEvents } from "../lib/mock-events";
 
 type EventRow = Database["public"]["Tables"]["events"]["Row"];
 
@@ -97,3 +98,28 @@ export const getPublishedEventBySlug = cache(async (slug: string) => {
 
   return getEventBySlug(slug) ?? null;
 });
+
+export async function listReviewQueueEvents() {
+  await requireAdminUser();
+
+  try {
+    const supabase = await createSupabaseServerClient();
+    const { data, error } = await supabase
+      .from("events")
+      .select("*")
+      .neq("status", "published")
+      .order("created_at", { ascending: false });
+
+    if (error) {
+      throw error;
+    }
+
+    return (data ?? [])
+      .map(mapEventRecord)
+      .filter((event): event is EventRecord => event !== null);
+  } catch (error) {
+    console.error("Failed to load review queue events from Supabase.", error);
+  }
+
+  return getReviewQueueEvents();
+}

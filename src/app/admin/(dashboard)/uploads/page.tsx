@@ -7,7 +7,7 @@ export default function AdminUploadsPage() {
       <SectionHeading
         eyebrow="Admin Uploads"
         title="Start the poster extraction workflow."
-        description="This surface is prepared for the upload, OCR, and metadata parsing flow. Authenticated admin mutations are intentionally left for the next slice instead of being faked without an auth decision."
+        description="Poster ingestion remains protected and admin-only while the public portal stays open."
       />
       <UploadPanel />
     </div>

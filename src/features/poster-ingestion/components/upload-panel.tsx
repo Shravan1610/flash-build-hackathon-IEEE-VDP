@@ -17,8 +17,8 @@ export function UploadPanel() {
             <Label htmlFor="poster-file">Poster file</Label>
             <Input accept=".jpeg,.jpg,.png,.pdf" id="poster-file" type="file" />
             <p className="text-sm text-muted-foreground">
-              MVP accepts `.jpeg`, `.png`, and `.pdf` files. Storage, OCR, parsing, and category
-              classification happen after upload.
+              Accepts `.jpeg`, `.png`, and `.pdf` files. Storage, OCR, parsing, and category
+              classification run after upload inside the protected admin workflow.
             </p>
           </div>
           <div className="grid gap-3 sm:grid-cols-3">
@@ -48,8 +48,8 @@ export function UploadPanel() {
             <li>5. Publish only after admin verification.</li>
           </ol>
           <p className="mt-4 text-sm leading-6 text-muted-foreground">
-            This UI is live, but the authenticated upload action is deferred until the project
-            chooses a concrete admin auth mechanism.
+            This route is protected by the separate admin login so only admins can run the
+            ingestion workflow.
           </p>
         </div>
       </CardContent>

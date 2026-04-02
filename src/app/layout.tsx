@@ -13,10 +13,15 @@ const themeInitScript = `
       var storedTheme = localStorage.getItem("theme");
       var shouldUseDark =
         storedTheme === "dark" ||
-        (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
-      document.documentElement.classList.toggle("dark", shouldUseDark);
+        (!storedTheme || window.matchMedia("(prefers-color-scheme: dark)").matches);
+      var resolvedTheme = shouldUseDark ? "dark" : "light";
+      document.documentElement.classList.toggle("dark", resolvedTheme === "dark");
+      document.documentElement.dataset.theme = resolvedTheme;
+      document.documentElement.style.colorScheme = resolvedTheme;
     } catch (error) {
-      document.documentElement.classList.remove("dark");
+      document.documentElement.classList.add("dark");
+      document.documentElement.dataset.theme = "dark";
+      document.documentElement.style.colorScheme = "dark";
     }
   })();
 `;

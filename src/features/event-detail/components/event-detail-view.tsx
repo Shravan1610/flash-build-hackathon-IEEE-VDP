@@ -1,3 +1,4 @@
+import type { Route } from "next";
 import Link from "next/link";
 import { ArrowLeft, CalendarDays, ImageIcon, MapPin } from "lucide-react";
 
@@ -9,9 +10,10 @@ import type { EventRecord } from "@/features/event-catalog/types/event";
 
 interface EventDetailViewProps {
   event: EventRecord;
+  registrationHref?: string | null;
 }
 
-export function EventDetailView({ event }: EventDetailViewProps) {
+export function EventDetailView({ event, registrationHref }: EventDetailViewProps) {
   return (
     <section className="grid gap-8 lg:grid-cols-[1.05fr_0.95fr]">
       <div className="space-y-6">
@@ -48,6 +50,27 @@ export function EventDetailView({ event }: EventDetailViewProps) {
               <p className="mt-3 text-lg font-medium">{event.venue}</p>
               <p className="text-sm text-muted-foreground">Published after admin verification.</p>
             </div>
+          </CardContent>
+        </Card>
+
+        <Card>
+          <CardContent className="flex flex-col gap-4 p-6 sm:flex-row sm:items-center sm:justify-between">
+            <div className="space-y-1">
+              <p className="text-lg font-semibold">Registration</p>
+              <p className="text-sm leading-6 text-muted-foreground">
+                Registration can stay anonymous, or you can log in as a student or faculty member
+                for a faster prefilled response.
+              </p>
+            </div>
+            {registrationHref ? (
+              <Button asChild>
+                <Link href={registrationHref as Route}>Register now</Link>
+              </Button>
+            ) : (
+              <Button disabled variant="outline">
+                Registration not published yet
+              </Button>
+            )}
           </CardContent>
         </Card>
       </div>

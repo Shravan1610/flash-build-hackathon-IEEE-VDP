@@ -3,23 +3,32 @@ import type { Route } from "next";
 import Link from "next/link";
 
 import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
-import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
+import { Badge } from "@/components/ui/badge";
+import { signOutAction } from "@/features/auth/server/actions";
+import { getCurrentUserContext } from "@/features/auth/server/auth";
 
 const navItems: Array<{ href: Route; label: string }> = [
   { href: "/events", label: "Events" },
   { href: "/search", label: "Search" },
-  { href: "/admin/uploads", label: "Admin Uploads" },
-  { href: "/admin/events", label: "Review Queue" },
 ];
 
-export function SiteShell({ children }: { children: React.ReactNode }) {
+export async function SiteShell({ children }: { children: React.ReactNode }) {
+  const userContext = await getCurrentUserContext();
+  const workspaceItems =
+    userContext.canManageTenant && !userContext.isAdmin
+      ? ([{ href: "/workspace", label: "Workspace" }] satisfies Array<{ href: Route; label: string }>)
+      : [];
+  const adminItems = userContext.isAdmin
+    ? ([{ href: "/admin", label: "Admin" }] satisfies Array<{ href: Route; label: string }>)
+    : [];
+
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 grid-noise opacity-50" />
       <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-xl">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
-          <Link className="flex items-center gap-3" href="/events">
+          <Link className="flex items-center gap-3" href="/">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20">
               IEEE
             </div>
@@ -32,7 +41,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </Link>
 
           <nav className="hidden items-center gap-2 md:flex">
-            {navItems.map((item) => (
+            {[...navItems, ...workspaceItems, ...adminItems].map((item) => (
               <Link
                 key={item.href}
                 className="rounded-full px-4 py-2 text-sm text-muted-foreground transition hover:bg-card hover:text-foreground"
@@ -45,10 +54,22 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
 
           <div className="flex items-center gap-3">
             <AnimatedThemeToggler />
-            <Badge variant="outline">Review-first MVP</Badge>
-            <Button asChild size="sm">
-              <Link href="/admin/uploads">Upload Poster</Link>
-            </Button>
+            {userContext.isAuthenticated ? (
+              <>
+                <Badge variant="outline">
+                  {(userContext.role ?? (userContext.isAdmin ? "admin" : "member")).replaceAll("_", " ")}
+                </Badge>
+                <form action={signOutAction}>
+                  <Button size="sm" type="submit" variant="outline">
+                    Sign out
+                  </Button>
+                </form>
+              </>
+            ) : (
+              <Button asChild size="sm">
+                <Link href="/auth">Login / Signup</Link>
+              </Button>
+            )}
           </div>
         </div>
       </header>

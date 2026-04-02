@@ -26,7 +26,10 @@ export function AnimatedThemeToggler({
 
   React.useEffect(() => {
     const updateTheme = () => {
-      setIsDark(document.documentElement.classList.contains("dark"));
+      const root = document.documentElement;
+      setIsDark(
+        root.classList.contains("dark") || root.dataset.theme === "dark",
+      );
     };
 
     updateTheme();
@@ -34,7 +37,7 @@ export function AnimatedThemeToggler({
     const observer = new MutationObserver(updateTheme);
     observer.observe(document.documentElement, {
       attributes: true,
-      attributeFilter: ["class"],
+      attributeFilter: ["class", "data-theme", "style"],
     });
 
     return () => observer.disconnect();
@@ -58,10 +61,13 @@ export function AnimatedThemeToggler({
     );
 
     const applyTheme = () => {
-      const newTheme = !isDark;
+      const root = document.documentElement;
+      const newTheme = !root.classList.contains("dark");
 
       setIsDark(newTheme);
-      document.documentElement.classList.toggle("dark", newTheme);
+      root.classList.toggle("dark", newTheme);
+      root.dataset.theme = newTheme ? "dark" : "light";
+      root.style.colorScheme = newTheme ? "dark" : "light";
       localStorage.setItem("theme", newTheme ? "dark" : "light");
     };
 
@@ -91,7 +97,7 @@ export function AnimatedThemeToggler({
         },
       );
     });
-  }, [duration, isDark]);
+  }, [duration]);
 
   return (
     <button
