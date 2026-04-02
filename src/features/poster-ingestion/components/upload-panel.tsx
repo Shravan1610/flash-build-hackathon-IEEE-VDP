@@ -5,9 +5,14 @@ import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
 
-export function UploadPanel() {
+interface UploadPanelProps {
+  action: (formData: FormData) => void | Promise<void>;
+}
+
+export function UploadPanel({ action }: UploadPanelProps) {
   return (
-    <Card className="overflow-hidden">
+    <form action={action}>
+      <Card className="overflow-hidden">
       <CardHeader className="bg-primary text-primary-foreground">
         <CardTitle>Poster ingestion pipeline</CardTitle>
       </CardHeader>
@@ -15,7 +20,7 @@ export function UploadPanel() {
         <div className="space-y-5">
           <div className="space-y-2">
             <Label htmlFor="poster-file">Poster file</Label>
-            <Input accept=".jpeg,.jpg,.png,.pdf" id="poster-file" type="file" />
+            <Input accept=".jpeg,.jpg,.png,.pdf" id="poster-file" name="poster" required type="file" />
             <p className="text-sm text-muted-foreground">
               Accepts `.jpeg`, `.png`, and `.pdf` files. Storage, OCR, parsing, and category
               classification run after upload inside the protected admin workflow.
@@ -35,7 +40,7 @@ export function UploadPanel() {
               <p className="mt-3 font-medium">Parse structured metadata</p>
             </div>
           </div>
-          <Button className="w-full sm:w-auto">Upload and extract</Button>
+          <Button className="w-full sm:w-auto" type="submit">Upload and extract</Button>
         </div>
 
         <div className="rounded-[28px] bg-muted/50 p-5">
@@ -53,6 +58,7 @@ export function UploadPanel() {
           </p>
         </div>
       </CardContent>
-    </Card>
+      </Card>
+    </form>
   );
 }

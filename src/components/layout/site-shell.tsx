@@ -26,7 +26,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
   return (
     <div className="relative min-h-screen overflow-hidden">
       <div className="pointer-events-none absolute inset-0 grid-noise opacity-50" />
-      <header className="sticky top-0 z-20 border-b border-border/60 bg-background/80 backdrop-blur-xl">
+      <header className="sticky top-0 z-20 border-b border-slate-900/8 bg-white/82 text-slate-950 backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-zinc-950/78 dark:text-white">
         <div className="mx-auto flex max-w-7xl items-center justify-between gap-6 px-4 py-4 sm:px-6 lg:px-8">
           <Link className="flex items-center gap-3" href="/">
             <div className="flex h-11 w-11 items-center justify-center rounded-2xl bg-primary text-sm font-semibold text-primary-foreground shadow-lg shadow-primary/20">
@@ -44,7 +44,7 @@ export async function SiteShell({ children }: { children: React.ReactNode }) {
             {[...navItems, ...workspaceItems, ...adminItems].map((item) => (
               <Link
                 key={item.href}
-                className="rounded-full px-4 py-2 text-sm text-muted-foreground transition hover:bg-card hover:text-foreground"
+                className="rounded-full px-4 py-2 text-sm text-slate-600 transition hover:bg-black/5 hover:text-slate-950 dark:text-slate-300 dark:hover:bg-white/8 dark:hover:text-white"
                 href={item.href}
               >
                 {item.label}

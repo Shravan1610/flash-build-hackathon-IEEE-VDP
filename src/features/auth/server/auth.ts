@@ -9,8 +9,8 @@ import { slugify } from "@/lib/utils/slugify";
 import type { UserContext } from "../types/auth";
 
 async function listUserMemberships(userId: string) {
-  const admin = createSupabaseAdminClient();
-  const { data: memberships, error } = await admin
+  const supabase = await createSupabaseServerClient();
+  const { data: memberships, error } = await supabase
     .from("tenant_memberships")
     .select("*")
     .eq("user_id", userId)
@@ -21,7 +21,7 @@ async function listUserMemberships(userId: string) {
   }
 
   const tenantIds = [...new Set(memberships.map((membership) => membership.tenant_id))];
-  const { data: tenants } = await admin
+  const { data: tenants } = await supabase
     .from("tenants")
     .select("*")
     .in("id", tenantIds);
