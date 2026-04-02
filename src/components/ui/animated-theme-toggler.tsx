@@ -71,14 +71,15 @@ export function AnimatedThemeToggler({
       localStorage.setItem("theme", newTheme ? "dark" : "light");
     };
 
-    const transitionApi = (document as ViewTransitionDocument).startViewTransition;
+    const transitionDocument = document as ViewTransitionDocument;
+    const transitionApi = transitionDocument.startViewTransition;
 
     if (typeof transitionApi !== "function") {
       applyTheme();
       return;
     }
 
-    const transition = transitionApi(() => {
+    const transition = transitionApi.call(transitionDocument, () => {
       flushSync(applyTheme);
     });
 
