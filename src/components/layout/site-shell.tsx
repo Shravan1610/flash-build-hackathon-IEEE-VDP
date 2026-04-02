@@ -2,6 +2,7 @@ import * as React from "react";
 import type { Route } from "next";
 import Link from "next/link";
 
+import { AnimatedThemeToggler } from "@/components/ui/animated-theme-toggler";
 import { Badge } from "@/components/ui/badge";
 import { Button } from "@/components/ui/button";
 
@@ -43,6 +44,7 @@ export function SiteShell({ children }: { children: React.ReactNode }) {
           </nav>
 
           <div className="flex items-center gap-3">
+            <AnimatedThemeToggler />
             <Badge variant="outline">Review-first MVP</Badge>
             <Button asChild size="sm">
               <Link href="/admin/uploads">Upload Poster</Link>

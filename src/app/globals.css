@@ -87,6 +87,7 @@
 
 html {
   scroll-behavior: smooth;
+  color-scheme: light;
 }
 
 body {
@@ -95,6 +96,17 @@ body {
     radial-gradient(circle at 85% 15%, rgba(15, 95, 85, 0.2), transparent 28%),
     linear-gradient(180deg, #f8f3e9 0%, #f1ebdd 58%, #ebe1d0 100%);
   font-feature-settings: "rlig" 1, "calt" 1;
+}
+
+.dark {
+  color-scheme: dark;
+}
+
+.dark body {
+  background:
+    radial-gradient(circle at top left, rgba(208, 123, 84, 0.14), transparent 28%),
+    radial-gradient(circle at 85% 15%, rgba(93, 181, 169, 0.18), transparent 24%),
+    linear-gradient(180deg, #18120d 0%, #1f1811 58%, #241b13 100%);
 }
 
 a {
@@ -111,6 +123,18 @@ a {
     linear-gradient(rgba(15, 95, 85, 0.06) 1px, transparent 1px),
     linear-gradient(90deg, rgba(15, 95, 85, 0.06) 1px, transparent 1px);
   background-size: 36px 36px;
+}
+
+.dark .grid-noise {
+  background-image:
+    linear-gradient(rgba(93, 181, 169, 0.08) 1px, transparent 1px),
+    linear-gradient(90deg, rgba(93, 181, 169, 0.08) 1px, transparent 1px);
+}
+
+::view-transition-old(root),
+::view-transition-new(root) {
+  animation: none;
+  mix-blend-mode: normal;
 }
 
 .dark {

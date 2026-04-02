@@ -7,7 +7,24 @@ import { cn } from "@/lib/utils/cn";
 
 import "./globals.css";
 
-const publicSans = Public_Sans({subsets:['latin'],variable:'--font-sans'});
+const themeInitScript = `
+  (function () {
+    try {
+      var storedTheme = localStorage.getItem("theme");
+      var shouldUseDark =
+        storedTheme === "dark" ||
+        (!storedTheme && window.matchMedia("(prefers-color-scheme: dark)").matches);
+      document.documentElement.classList.toggle("dark", shouldUseDark);
+    } catch (error) {
+      document.documentElement.classList.remove("dark");
+    }
+  })();
+`;
+
+const publicSans = Public_Sans({
+  subsets: ["latin"],
+  variable: "--font-sans",
+});
 
 const spaceGrotesk = Space_Grotesk({
   subsets: ["latin"],
@@ -31,7 +48,7 @@ export default function RootLayout({
   children: React.ReactNode;
 }>) {
   return (
-    <html lang="en" className={cn("font-sans", publicSans.variable)}>
+    <html lang="en" suppressHydrationWarning className={cn("font-sans", publicSans.variable)}>
       <body
         className={cn(
           spaceGrotesk.variable,
@@ -39,6 +56,7 @@ export default function RootLayout({
           "min-h-screen bg-background font-[family-name:var(--font-heading)] text-foreground antialiased",
         )}
       >
+        <script dangerouslySetInnerHTML={{ __html: themeInitScript }} />
         <SiteShell>{children}</SiteShell>
       </body>
     </html>
