@@ -12,6 +12,12 @@ interface AdminUploadsPageProps {
 export default async function AdminUploadsPage({ searchParams }: AdminUploadsPageProps) {
   const params = await searchParams;
 
+  async function handleUploadPosterAction(formData: FormData) {
+    "use server";
+
+    await uploadPosterAction(formData);
+  }
+
   return (
     <div className="space-y-8">
       <SectionHeading
@@ -24,7 +30,7 @@ export default async function AdminUploadsPage({ searchParams }: AdminUploadsPag
           <CardContent className="p-6 text-sm text-accent">{decodeURIComponent(params.error)}</CardContent>
         </Card>
       ) : null}
-      <UploadPanel action={uploadPosterAction} />
+      <UploadPanel action={handleUploadPosterAction} />
     </div>
   );
 }
