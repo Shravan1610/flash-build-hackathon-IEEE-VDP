@@ -1,11 +1,13 @@
 import Link from "next/link";
+import { revalidatePath } from "next/cache";
+import { redirect } from "next/navigation";
 
 import { SectionHeading } from "@/components/shared/section-heading";
 import { Button } from "@/components/ui/button";
 import { Card, CardContent, CardHeader, CardTitle } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Label } from "@/components/ui/label";
-import { adminSignInAction } from "@/features/auth/server/actions";
+import { createSupabaseServerClient } from "@/lib/supabase/server";
 
 interface AdminLoginPageProps {
   searchParams: Promise<{
@@ -30,6 +32,37 @@ export default async function AdminLoginPage({ searchParams }: AdminLoginPagePro
   const params = await searchParams;
   const reasonMessage = getReasonMessage(params.reason);
   const errorMessage = params.error ? decodeURIComponent(params.error) : null;
+
+  async function adminSignInAction(formData: FormData) {
+    "use server";
+
+    const email = formData.get("email");
+    const password = formData.get("password");
+
+    if (typeof email !== "string" || typeof password !== "string" || !email || !password) {
+      redirect("/admin/login?error=invalid-credentials");
+    }
+
+    const supabase = await createSupabaseServerClient();
+    const { error } = await supabase.auth.signInWithPassword({
+      email,
+      password,
+    });
+
+    if (error) {
+      redirect(`/admin/login?error=${encodeURIComponent(error.message)}`);
+    }
+
+    const { data: isAdmin } = await supabase.rpc("is_admin_user");
+
+    if (!isAdmin) {
+      await supabase.auth.signOut();
+      redirect("/admin/login?error=admin-only");
+    }
+
+    revalidatePath("/", "layout");
+    redirect("/admin");
+  }
 
   return (
     <div className="mx-auto grid w-full max-w-5xl gap-8 lg:grid-cols-[0.95fr_1.05fr]">

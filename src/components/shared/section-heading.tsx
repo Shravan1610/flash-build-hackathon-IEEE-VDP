@@ -19,9 +19,11 @@ export function SectionHeading({
         <p className="text-xs font-medium uppercase tracking-[0.28em] text-accent">{eyebrow}</p>
       ) : null}
       <div className="space-y-2">
-        <h2 className="text-3xl font-semibold tracking-tight text-balance sm:text-4xl">{title}</h2>
+        <h2 className="text-3xl font-semibold tracking-tight text-balance text-slate-950 dark:text-white sm:text-4xl">
+          {title}
+        </h2>
         {description ? (
-          <p className="max-w-2xl text-sm leading-6 text-muted-foreground sm:text-base">
+          <p className="max-w-2xl text-sm leading-6 text-slate-700 dark:text-slate-300 sm:text-base">
             {description}
           </p>
         ) : null}
@@ -29,4 +31,3 @@ export function SectionHeading({
     </div>
   );
 }
-

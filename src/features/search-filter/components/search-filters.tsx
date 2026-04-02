@@ -13,18 +13,18 @@ interface SearchFiltersProps {
 
 export function SearchFilters({ filters }: SearchFiltersProps) {
   return (
-    <Card className="border-none bg-[#0f5f55] text-primary-foreground">
+    <Card className="border-slate-900/8 bg-white/72 text-slate-950 shadow-[0_28px_100px_-56px_rgba(15,23,42,0.22)] backdrop-blur-xl transition-colors duration-300 dark:border-white/10 dark:bg-accent/18 dark:text-white dark:shadow-[0_28px_100px_-56px_rgba(0,0,0,0.9)]">
       <CardHeader>
         <CardTitle>Search published events</CardTitle>
       </CardHeader>
       <CardContent>
         <form className="grid gap-5 md:grid-cols-3 lg:grid-cols-[1.2fr_0.8fr_0.8fr_auto]">
           <div className="space-y-2">
-            <Label className="text-primary-foreground/70" htmlFor="event-query">
+            <Label className="text-slate-600 dark:text-white/70" htmlFor="event-query">
               Keyword
             </Label>
             <Input
-              className="border-white/10 bg-white/10 text-primary-foreground placeholder:text-primary-foreground/55"
+              className="border-slate-900/8 bg-slate-950/4 text-slate-950 placeholder:text-slate-500 dark:border-white/10 dark:bg-white/10 dark:text-white dark:placeholder:text-white/55"
               defaultValue={filters.query}
               id="event-query"
               name="query"
@@ -32,11 +32,11 @@ export function SearchFilters({ filters }: SearchFiltersProps) {
             />
           </div>
           <div className="space-y-2">
-            <Label className="text-primary-foreground/70" htmlFor="event-category">
+            <Label className="text-slate-600 dark:text-white/70" htmlFor="event-category">
               Category
             </Label>
             <select
-              className="flex h-11 w-full rounded-2xl border border-white/10 bg-white/10 px-4 text-sm text-primary-foreground outline-none focus-visible:ring-2 focus-visible:ring-white/30"
+              className="flex h-11 w-full rounded-2xl border border-slate-900/8 bg-slate-950/4 px-4 text-sm text-slate-950 outline-none focus-visible:ring-2 focus-visible:ring-ring dark:border-white/10 dark:bg-white/10 dark:text-white dark:focus-visible:ring-white/30"
               defaultValue={filters.category ?? "All"}
               id="event-category"
               name="category"
@@ -50,11 +50,11 @@ export function SearchFilters({ filters }: SearchFiltersProps) {
             </select>
           </div>
           <div className="space-y-2">
-            <Label className="text-primary-foreground/70" htmlFor="event-date">
+            <Label className="text-slate-600 dark:text-white/70" htmlFor="event-date">
               From date
             </Label>
             <Input
-              className="border-white/10 bg-white/10 text-primary-foreground"
+              className="border-slate-900/8 bg-slate-950/4 text-slate-950 dark:border-white/10 dark:bg-white/10 dark:text-white"
               defaultValue={filters.from}
               id="event-date"
               name="from"
@@ -62,10 +62,14 @@ export function SearchFilters({ filters }: SearchFiltersProps) {
             />
           </div>
           <div className="flex items-end gap-3">
-            <Button className="bg-white text-[#0f5f55] hover:bg-white/90" type="submit">
+            <Button type="submit">
               Apply
             </Button>
-            <Button asChild className="border-white/10 bg-white/10 text-primary-foreground hover:bg-white/15" variant="outline">
+            <Button
+              asChild
+              className="border-slate-900/8 bg-slate-950/4 text-slate-700 hover:bg-slate-950/8 dark:border-white/10 dark:bg-white/10 dark:text-white dark:hover:bg-white/15"
+              variant="outline"
+            >
               <Link href="/search">Reset</Link>
             </Button>
           </div>
